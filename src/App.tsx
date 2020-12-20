@@ -1,20 +1,13 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  // useHistory,
+} from "react-router-dom";
 import { Channel } from "./Channel/Channel";
-// import crypto from 'crypto';
-// const DiscordOauth2 = require("discord-oauth2");
-// const oauth = new DiscordOauth2({
-//     clientId: `${process.env.REACT_APP_CLIENT_ID}`,
-//     clientSecret: `${process.env.REACT_APP_CLIENT_SECRET}`,
-//     redirectUri: "http://localhost:3000/redirect",
-// });
-// const url = oauth.generateAuthUrl({
-//     scope: ["identify", "messages.read"],
-//     state: crypto.randomBytes(16).toString("hex"), // Be aware that randomBytes is sync if no callback is provided
-// });
-// console.log('Url: ', url);
-// const params: any = {};
+
 export interface Message {
   id: string;
   type: number;
@@ -23,7 +16,7 @@ export interface Message {
   author: {
     id: string;
     username: string;
-    avatar?: string | null;
+    avatar: string | null;
     discriminator: string;
     public_flags: number;
   };
@@ -45,59 +38,70 @@ export interface Message {
   referenced_message?: Message;
 }
 
-let messages: Message[] = [];
-// const Redirect: React.FC = () => {
-//     const { search } = useLocation();
-//     const queryString = search.substring(1).split('&');
-//     queryString.forEach(str => {
-//         const param: string[] = str.split('=');
-//         params[param[0]] = param[1];
-//     })
-//     console.log('Params: ', params);
-//     try {
-//         oauth.tokenRequest({
-//             code: params.code,
-//             scope: "identify messages.read",
-//             grantType: "authorization_code",
-//             redirectUri: "http://localhost:3000/redirect",
-//         }).then(console.log)
-//     } catch (e) {
-//         console.error(e);
-//     }
-//
-//     return <div>Redirected!</div>;
-// }
-
-const getMessages = async () => {
-  try {
-    const result = await fetch(
-      `https://discord.com/api/v7/channels/${process.env.REACT_APP_CHANNEL_ID}/messages`,
-      {
-        headers: {
-          authorization: `Bot ${process.env.REACT_APP_BOT_TOKEN}`,
-        },
-        method: "GET",
-        mode: "no-cors",
-      }
-    );
-    console.log("Result: ", result);
-    return result.json();
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-getMessages().then((results) => {
-  messages = results || [];
-});
-
 const App: React.FC = () => {
+  const [channelId, setChannelId] = useState<string>();
+  const [channelName, setChannelName] = useState<string>();
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    const fetchChannel = async (channelId: string) => {
+      try {
+        const result = await fetch(
+          `${process.env.REACT_APP_API_HOST}/channel?channel=${channelId}`,
+          {
+            method: "GET",
+          }
+        );
+        const { name } = await result.json();
+        console.log("Channel name: ", name);
+        setChannelName(name);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    const fetchMessages = async (channelId: string) => {
+      try {
+        const result = await fetch(
+          `${process.env.REACT_APP_API_HOST}/messages?channel=${channelId}`,
+          {
+            method: "GET",
+          }
+        );
+        const msgs = await result.json();
+        setMessages(msgs);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    if (channelId) {
+      fetchChannel(channelId);
+      const interval = setInterval(() => fetchMessages(channelId), 1500);
+      return () => clearInterval(interval);
+    }
+  }, [channelId]);
   return (
     <div className="App">
       <Router>
         <Switch>
           <Route exact path="/">
-            <Channel msgs={messages} />
+            {messages && channelName && (
+              <>
+                <Channel msgs={messages} channelName={channelName} />
+              </>
+            )}
+            {!channelId && (
+              <>
+              <h2>Channel ID</h2>
+              <input
+                id="channel-input"
+                autoFocus={true}
+                type="password"
+                onBlur={(event) => setChannelId(event.target.value)}
+              />
+              </>
+            )}
           </Route>
         </Switch>
       </Router>

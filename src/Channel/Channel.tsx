@@ -6,10 +6,19 @@ const ChannelMessage: React.FC<{ username: string; content: string }> = ({
   content,
 }) => <div>{`${username}: ${content}`}</div>;
 
-export const Channel: React.FC<{ msgs: Message[] }> = ({ msgs }) => (
+export const Channel: React.FC<{ msgs: Message[]; channelName: string }> = ({
+  msgs,
+  channelName,
+}) => (
   <>
-    {msgs.map(({ content, author }) => (
-      <ChannelMessage content={content} username={author.username} />
-    ))}
+    <h1 id={"watermark"}>{`#${channelName}`}</h1>
+    {Array.isArray(msgs) &&
+      msgs.map(({ content, author }, index) => (
+        <ChannelMessage
+          key={`message-${index}`}
+          content={content}
+          username={author.username}
+        />
+      ))}
   </>
 );

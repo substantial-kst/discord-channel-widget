@@ -11,8 +11,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.6",
-    "crypto": "^1.0.1",
-    "discord-oauth2": "^2.6.0",
+    "dotenv": "^12.0.4",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
@@ -22,9 +21,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "zx script/build.mjs",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "zx script/deploy.mjs",
+    "invalidate": "zx script/invalidate.mjs"
   },
   "eslintConfig": {
     "extends": [
@@ -45,6 +46,7 @@
     ]
   },
   "devDependencies": {
+    "http-proxy-middleware": "^1.0.6",
     "prettier": "^2.2.1"
   }
 }
