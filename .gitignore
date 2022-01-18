@@ -3,6 +3,9 @@
 .env
 .eslintcache
 
+# generated files
+bookmarklet.js
+
 # dependencies
 /node_modules
 /.pnp
